@@ -14,8 +14,60 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
 
     // ...
     [DomainComponent]
+    public class CloneObjectData : NonPersistentBaseObject
+    {
+        ITypeInfo typeInfo;
+        PropertyObject propertyObject;
+   
+        public override void OnSaving()
+        {
+            base.OnSaving();
+            // ...
+        }
+     
+
+        [Browsable(false)]
+        public ITypeInfo TypeInfo
+        {
+            get => typeInfo;
+            set
+            {
+                if (typeInfo == value)
+                    return;
+                typeInfo = value;
+                OnPropertyChanged(nameof(TypeInfo));
+            }
+        }
+
+     
+        public List<PropertyObject> CloneableProperties
+        {
+            get
+            {
+
+                //TODO we need to remove service members https://supportcenter.devexpress.com/ticket/details/q237276/what-is-servicefield
+                List<PropertyObject> list = new List<PropertyObject>();
+                TypeInfo.Members.Where(x => x.IsPersistent).ToList().ForEach(x =>
+                {
+                    var ServiceField = x as DevExpress.Xpo.Metadata.Helpers.ServiceField;
+                    if (ServiceField == null)
+                    {
+                        var PropertyObject = ObjectSpace.CreateObject<PropertyObject>();
+                        PropertyObject.Name = x.Name;
+                        PropertyObject.Description = x.DisplayName;
+                        list.Add(PropertyObject);
+                    }
+                });
+                
+                return list;   
+            }
+        }
+    }
+    // ...
+    [DomainComponent]
     public class MainObject : NonPersistentBaseObject
     {
+        string filterValues;
         ITypeInfo typeInfo;
         PropertyObject propertyObject;
         private String name;
@@ -25,15 +77,12 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
             base.OnSaving();
             // ...
         }
-        public String Name
+        
+        [Size(SizeAttribute.Unlimited)]
+        public string FilterValues
         {
-            get { return name; }
-            set { SetPropertyValue(ref name, value); }
-        }
-        public String Description
-        {
-            get { return description; }
-            set { SetPropertyValue(ref description, value); }
+            get => filterValues;
+            set => SetPropertyValue(ref filterValues, value, nameof(FilterValues));
         }
         [DataSourceProperty("RefProperties")]
         public PropertyObject PropertyObject
@@ -87,6 +136,7 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
     [DomainComponent]
     public class PropertyObject : NonPersistentBaseObject
     {
+        bool selected;
         private String name;
         private String description;
         public override void OnSaving()
@@ -103,6 +153,12 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
         {
             get { return description; }
             set { SetPropertyValue(ref description, value); }
+        }
+        
+        public bool Selected
+        {
+            get => selected;
+            set => SetPropertyValue(ref selected, value, nameof(Selected));
         }
     }
 }
