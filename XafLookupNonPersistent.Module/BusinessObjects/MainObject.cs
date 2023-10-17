@@ -1,4 +1,5 @@
-﻿using DevExpress.Xpo;
+﻿using DevExpress.Persistent.BaseImpl;
+using DevExpress.Xpo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,70 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
     using DevExpress.Persistent.Base;
     using System.ComponentModel;
 
+    [DefaultClassOptions]
+    public class TestClassDetail : BaseObject
+    {
+        public TestClassDetail(Session session) : base(session)
+        { }
+
+
+        TestClass testClass;
+        string valueTest;
+
+        [Size(SizeAttribute.DefaultStringMappingFieldSize)]
+        public string ValueTest
+        {
+            get => valueTest;
+            set => SetPropertyValue(nameof(ValueTest), ref valueTest, value);
+        }
+        
+        [Association("TestClass-TestClassDetails")]
+        public TestClass TestClass
+        {
+            get => testClass;
+            set => SetPropertyValue(nameof(TestClass), ref testClass, value);
+        }
+    }
+    [DefaultClassOptions]
+    public class TestClass : BaseObject
+    {
+        public TestClass(Session session) : base(session)
+        { }
+
+
+        DateTime date;
+        string address;
+        string name;
+
+        [Size(SizeAttribute.DefaultStringMappingFieldSize)]
+        public string Name
+        {
+            get => name;
+            set => SetPropertyValue(nameof(Name), ref name, value);
+        }
+
+        [Size(SizeAttribute.DefaultStringMappingFieldSize)]
+        public string Address
+        {
+            get => address;
+            set => SetPropertyValue(nameof(Address), ref address, value);
+        }
+        [NonCloneable()]
+        public DateTime Date
+        {
+            get => date;
+            set => SetPropertyValue(nameof(Date), ref date, value);
+        }
+        [Association("TestClass-TestClassDetails"),DevExpress.Xpo.Aggregated]
+        public XPCollection<TestClassDetail> TestClassDetails
+        {
+            get
+            {
+                return GetCollection<TestClassDetail>(nameof(TestClassDetails));
+            }
+        }
+    }
+
     // ...
     [DomainComponent]
     public class CloneObjectData : NonPersistentBaseObject
@@ -24,8 +89,8 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
             base.OnSaving();
             // ...
         }
-     
-
+        [Browsable(false)]
+        public object CurrentInstance { get; set; }
         [Browsable(false)]
         public ITypeInfo TypeInfo
         {
@@ -44,17 +109,27 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
         {
             get
             {
-
+                XPCustomObject xPCustomObject=this.CurrentInstance as XPCustomObject;
                 //TODO we need to remove service members https://supportcenter.devexpress.com/ticket/details/q237276/what-is-servicefield
                 List<PropertyObject> list = new List<PropertyObject>();
-                TypeInfo.Members.Where(x => x.IsPersistent).ToList().ForEach(x =>
+                TypeInfo.Members.Where(x => (x.IsPersistent && x.FindAttribute<NonCloneableAttribute>()==null && x.IsKey==false && x.FindAttribute<BrowsableAttribute>()?.Browsable!=false && !x.IsService && x.BindingName!= "GCRecord") || (x.IsList && x.IsPublic)).ToList().ForEach(x =>
                 {
+                  
                     var ServiceField = x as DevExpress.Xpo.Metadata.Helpers.ServiceField;
                     if (ServiceField == null)
                     {
                         var PropertyObject = ObjectSpace.CreateObject<PropertyObject>();
                         PropertyObject.Name = x.Name;
-                        PropertyObject.Description = x.DisplayName;
+                        if(x.IsList)
+                        {
+                            var Collection = xPCustomObject.GetMemberValue(x.Name) as XPBaseCollection;
+                            PropertyObject.Value = Collection.Count.ToString();
+                        }
+                        else
+                        {
+                            PropertyObject.Value = xPCustomObject.GetMemberValue(x.Name)?.ToString();
+                        }
+                       
                         list.Add(PropertyObject);
                     }
                 });
@@ -118,7 +193,7 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
                     {
                         var PropertyObject = ObjectSpace.CreateObject<PropertyObject>();
                         PropertyObject.Name = x.Name;
-                        PropertyObject.Description = x.DisplayName;
+                        PropertyObject.Value = x.DisplayName;
                         list.Add(PropertyObject);
                     }
                   
@@ -138,7 +213,7 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
     {
         bool selected;
         private String name;
-        private String description;
+        private String _value;
         public override void OnSaving()
         {
             base.OnSaving();
@@ -149,10 +224,10 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
             get { return name; }
             set { SetPropertyValue(ref name, value); }
         }
-        public String Description
+        public String Value
         {
-            get { return description; }
-            set { SetPropertyValue(ref description, value); }
+            get { return _value; }
+            set { SetPropertyValue(ref _value, value); }
         }
         
         public bool Selected
