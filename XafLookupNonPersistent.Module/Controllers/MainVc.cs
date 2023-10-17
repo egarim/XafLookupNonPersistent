@@ -13,17 +13,6 @@ using XafLookupNonPersistent.Module.BusinessObjects;
 
 namespace XafLookupNonPersistent.Module.Controllers
 {
-    public class MyCloner : Cloner
-    {
-        public override void CopyMemberValue(
-            XPMemberInfo memberInfo, IXPSimpleObject sourceObject, IXPSimpleObject targetObject)
-        {
-            if (!memberInfo.IsAssociation)
-            {
-                base.CopyMemberValue(memberInfo, sourceObject, targetObject);
-            }
-        }
-    }
     public class MainVc : ViewController
     {
         PopupWindowShowAction CustomizeCloneAction;
@@ -48,6 +37,12 @@ namespace XafLookupNonPersistent.Module.Controllers
             var selectedPopupWindowObjects = e.PopupWindowViewSelectedObjects;
             var selectedSourceViewObjects = e.SelectedObjects;
             // Execute your business logic (https://docs.devexpress.com/eXpressAppFramework/112723/).
+
+            //TODO implement
+            //var cloner = new MyCloner(null);
+            //e.TargetObjectSpace = e.CreateDefaultTargetObjectSpace();
+            //object objectFromTargetObjectSpace = e.TargetObjectSpace.GetObject(e.SourceObject);
+            //e.ClonedObject = cloner.CloneTo(objectFromTargetObjectSpace, e.TargetType);
         }
         private void CustomizeCloneAction_CustomizePopupWindowParams(object sender, CustomizePopupWindowParamsEventArgs e)
         {
@@ -89,7 +84,7 @@ namespace XafLookupNonPersistent.Module.Controllers
 
         void cloneObjectController_CustomCloneObject(object sender, CustomCloneObjectEventArgs e)
         {
-            var cloner = new MyCloner();
+            var cloner = new MyCloner(null);
             e.TargetObjectSpace = e.CreateDefaultTargetObjectSpace();
             object objectFromTargetObjectSpace = e.TargetObjectSpace.GetObject(e.SourceObject);
             e.ClonedObject = cloner.CloneTo(objectFromTargetObjectSpace, e.TargetType);

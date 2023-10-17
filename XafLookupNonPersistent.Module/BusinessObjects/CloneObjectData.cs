@@ -43,9 +43,9 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
                 XPCustomObject xPCustomObject = CurrentInstance as XPCustomObject;
                 //TODO we need to remove service members https://supportcenter.devexpress.com/ticket/details/q237276/what-is-servicefield
                 List<PropertyObject> list = new List<PropertyObject>();
-                TypeInfo.Members.Where(x => x.IsPersistent && x.FindAttribute<NonCloneableAttribute>() == null && x.IsKey == false && x.FindAttribute<BrowsableAttribute>()?.Browsable != false && !x.IsService && x.BindingName != "GCRecord" || x.IsList && x.IsPublic).ToList().ForEach(x =>
+                TypeInfo.Members.Where(x => x.IsPersistent  && x.IsKey == false && x.FindAttribute<BrowsableAttribute>()?.Browsable != false && !x.IsService && x.BindingName != "GCRecord" || x.IsList && x.IsPublic).ToList().ForEach(x =>
                 {
-
+                    //&& x.FindAttribute<NonCloneableAttribute>() == null
                     var ServiceField = x as DevExpress.Xpo.Metadata.Helpers.ServiceField;
                     if (ServiceField == null)
                     {
@@ -60,7 +60,14 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
                         {
                             PropertyObject.Value = xPCustomObject.GetMemberValue(x.Name)?.ToString();
                         }
-
+                        if(x.FindAttribute<NonCloneableAttribute>() == null)
+                        {
+                            PropertyObject.Selected=true;
+                        }
+                        else
+                        {
+                            PropertyObject.Selected = false;
+                        }
                         list.Add(PropertyObject);
                     }
                 });
