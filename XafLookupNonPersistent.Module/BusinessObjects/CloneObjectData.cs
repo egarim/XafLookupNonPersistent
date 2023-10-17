@@ -1,10 +1,6 @@
-﻿using DevExpress.Persistent.BaseImpl;
-using DevExpress.Xpo;
+﻿using DevExpress.Xpo;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XafLookupNonPersistent.Module.BusinessObjects
 {
@@ -13,33 +9,19 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
     using DevExpress.Persistent.Base;
     using System.ComponentModel;
     // ...
-    // ...
     [DomainComponent]
-    public class MainObject : NonPersistentBaseObject
+    public class CloneObjectData : NonPersistentBaseObject
     {
-        string filterValues;
         ITypeInfo typeInfo;
         PropertyObject propertyObject;
-        private String name;
-        private String description;
+
         public override void OnSaving()
         {
             base.OnSaving();
             // ...
         }
-        
-        [Size(SizeAttribute.Unlimited)]
-        public string FilterValues
-        {
-            get => filterValues;
-            set => SetPropertyValue(ref filterValues, value, nameof(FilterValues));
-        }
-        [DataSourceProperty("RefProperties")]
-        public PropertyObject PropertyObject
-        {
-            get => propertyObject;
-            set => SetPropertyValue<PropertyObject>(ref propertyObject, value, nameof(PropertyObject));
-        }
+        [Browsable(false)]
+        public object CurrentInstance { get; set; }
         [Browsable(false)]
         public ITypeInfo TypeInfo
         {
@@ -52,34 +34,38 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
                 OnPropertyChanged(nameof(TypeInfo));
             }
         }
-        
-        [Browsable(false)]
-        public List<PropertyObject> RefProperties
+
+
+        public List<PropertyObject> CloneableProperties
         {
             get
             {
-
+                XPCustomObject xPCustomObject = CurrentInstance as XPCustomObject;
                 //TODO we need to remove service members https://supportcenter.devexpress.com/ticket/details/q237276/what-is-servicefield
                 List<PropertyObject> list = new List<PropertyObject>();
-                TypeInfo.Members.Where(x => x.IsPersistent).ToList().ForEach(x =>
+                TypeInfo.Members.Where(x => x.IsPersistent && x.FindAttribute<NonCloneableAttribute>() == null && x.IsKey == false && x.FindAttribute<BrowsableAttribute>()?.Browsable != false && !x.IsService && x.BindingName != "GCRecord" || x.IsList && x.IsPublic).ToList().ForEach(x =>
                 {
+
                     var ServiceField = x as DevExpress.Xpo.Metadata.Helpers.ServiceField;
-                    if(ServiceField==null)
+                    if (ServiceField == null)
                     {
                         var PropertyObject = ObjectSpace.CreateObject<PropertyObject>();
                         PropertyObject.Name = x.Name;
-                        PropertyObject.Value = x.DisplayName;
+                        if (x.IsList)
+                        {
+                            var Collection = xPCustomObject.GetMemberValue(x.Name) as XPBaseCollection;
+                            PropertyObject.Value = Collection.Count.ToString();
+                        }
+                        else
+                        {
+                            PropertyObject.Value = xPCustomObject.GetMemberValue(x.Name)?.ToString();
+                        }
+
                         list.Add(PropertyObject);
                     }
-                  
-                    //list.Add(PropertyObject);
                 });
-                //PropertyObject1.Name = "1";
-                //PropertyObject2.Name = "2";
-                //list.Add(PropertyObject1);
-                //list.Add(PropertyObject2);
+
                 return list;
-                //return this.ObjectSpace.CreateCollection(typeof(PropertyObject)).Cast<PropertyObject>().ToList();
             }
         }
     }

@@ -9,8 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XafLookupNonPersistent.Module.BusinessObjects;
 
-namespace XafLookupNonPersistent.Module.BusinessObjects
+namespace XafLookupNonPersistent.Module.Controllers
 {
     public class MyCloner : Cloner
     {
@@ -50,7 +51,7 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
         }
         private void CustomizeCloneAction_CustomizePopupWindowParams(object sender, CustomizePopupWindowParamsEventArgs e)
         {
-            var Os = this.Application.CreateObjectSpace(typeof(CloneObjectData));
+            var Os = Application.CreateObjectSpace(typeof(CloneObjectData));
             var MainInstance = Os.CreateObject<CloneObjectData>();
             MainInstance.TypeInfo = this.View.ObjectTypeInfo;
             MainInstance.CurrentInstance = this.View.CurrentObject;
@@ -65,13 +66,13 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
         }
         private void ShowPopup_CustomizePopupWindowParams(object sender, CustomizePopupWindowParamsEventArgs e)
         {
-            var Os = this.Application.CreateObjectSpace(typeof(MainObject));
+            var Os = Application.CreateObjectSpace(typeof(MainObject));
             var MainInstance = Os.CreateObject<MainObject>();
             MainInstance.TypeInfo = this.View.ObjectTypeInfo;
-          
 
 
-             var View = Application.CreateDetailView(Os, MainInstance);
+
+            var View = Application.CreateDetailView(Os, MainInstance);
             e.View = View;
             // Set the e.View parameter to a newly created view (https://docs.devexpress.com/eXpressAppFramework/112723/).
         }
@@ -85,7 +86,7 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
             }
             // Perform various tasks depending on the target View.
         }
-    
+
         void cloneObjectController_CustomCloneObject(object sender, CustomCloneObjectEventArgs e)
         {
             var cloner = new MyCloner();
