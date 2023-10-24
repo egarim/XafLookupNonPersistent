@@ -17,10 +17,20 @@ namespace XafLookupNonPersistent.Module.Controllers
         public override void CopyMemberValue(
             XPMemberInfo memberInfo, IXPSimpleObject sourceObject, IXPSimpleObject targetObject)
         {
-            if (!memberInfo.IsAssociation)
+            base.CopyMemberValue(memberInfo, sourceObject, targetObject);
+        }
+        public override bool IsMemberCloneable(XPMemberInfo memberInfo)
+        {
+            var Names= _CloneableProperties.Select(x => x.Name).ToList();
+            if (Names.Contains(memberInfo.Name))
             {
-                base.CopyMemberValue(memberInfo, sourceObject, targetObject);
+                return true;
             }
+            else
+            {
+                return base.IsMemberCloneable(memberInfo);
+            }
+           
         }
     }
 }

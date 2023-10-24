@@ -50,15 +50,15 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
                     if (ServiceField == null)
                     {
                         var PropertyObject = ObjectSpace.CreateObject<PropertyObject>();
-                        PropertyObject.Name = x.Name;
+                        PropertyObject.SetName(x.Name);
                         if (x.IsList)
                         {
                             var Collection = xPCustomObject.GetMemberValue(x.Name) as XPBaseCollection;
-                            PropertyObject.Value = Collection.Count.ToString();
+                            PropertyObject.SetValue(Collection.Count.ToString());
                         }
                         else
                         {
-                            PropertyObject.Value = xPCustomObject.GetMemberValue(x.Name)?.ToString();
+                            PropertyObject.SetValue(xPCustomObject.GetMemberValue(x.Name)?.ToString());
                         }
                         if(x.FindAttribute<NonCloneableAttribute>() == null)
                         {

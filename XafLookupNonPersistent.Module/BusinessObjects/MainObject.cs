@@ -67,8 +67,8 @@ namespace XafLookupNonPersistent.Module.BusinessObjects
                     if(ServiceField==null)
                     {
                         var PropertyObject = ObjectSpace.CreateObject<PropertyObject>();
-                        PropertyObject.Name = x.Name;
-                        PropertyObject.Value = x.DisplayName;
+                        PropertyObject.SetName(x.Name);
+                        PropertyObject.SetValue(x.DisplayName);
                         list.Add(PropertyObject);
                     }
                   

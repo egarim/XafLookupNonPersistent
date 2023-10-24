@@ -12,6 +12,7 @@
   </SchemaModules>
   <Views>
     <ListView Id="ApplicationUser_ListView" Caption="Users" />
+    <ListView Id="CloneObjectData_CloneableProperties_ListView" AllowEdit="True" AllowNew="False" AllowDelete="False" />
     <DetailView Id="MainObject_DetailView">
       <Items>
         <PropertyEditor Id="FilterValues" RowCount="10" />
